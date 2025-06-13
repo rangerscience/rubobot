@@ -3,13 +3,10 @@ require "fileutils"
 require "logger"
 require 'debug'
 
-require_relative "tools/read_file"
-require_relative "tools/list_files"
-require_relative "tools/edit_file"
-require_relative "tools/run_shell_command"
-require_relative "tools/write_file"
-require_relative "tools/git"
-require_relative "tools/reset_context"
+# Dynamically require all tool files
+Dir[File.join(__dir__, "tools", "*.rb")].each do |file|
+  require_relative file
+end
 
 class Agent
   def initialize(working_dir: "./")
@@ -22,22 +19,34 @@ class Agent
   
   def initialize_chat
     @chat = RubyLLM.chat
-    @chat.with_tools(Tools::ReadFile, Tools::ListFiles, Tools::EditFile, 
-                    Tools::RunShellCommand, Tools::WriteFile, 
-                    Tools::Git::Commit, Tools::Git::Status, Tools::Git::Diff, Tools::Git::Log,
-                    Tools::ResetContext)
+
+    # Find all tool classes in the Tools namespace
+    tools = []
+
+    # Add regular tools
+    Tools.constants.each do |const|
+      tool = Tools.const_get(const)
+      if tool.is_a?(Class) && tool.ancestors.include?(RubyLLM::Tool)
+        tools << tool
+      elsif tool.is_a?(Module)
+        # Handle nested modules like Tools::Git
+        tool.constants.each do |nested_const|
+          nested_tool = tool.const_get(nested_const)
+          if nested_tool.is_a?(Class) && nested_tool.ancestors.include?(RubyLLM::Tool)
+            tools << nested_tool
+          end
+        end
+      end
+    end
+    
+    # Load all tools
+    @chat.with_tools(*tools)
     
     # Read baseline prompt from file
     if File.exist?(File.join(@working_dir, ".ai", "base.txt"))
       base = File.read(File.join(@working_dir, ".ai", "base.txt"))
       @chat.with_instructions base if !base.empty?
     end
-  end
-  
-  def reset_context
-    # Create a new chat instance with the same configuration
-    initialize_chat
-    puts "Chat context has been reset."
   end
 
   def run
@@ -66,10 +75,17 @@ class Agent
       loop do
         print "> "
         user_input = $stdin.gets.chomp
-        break if user_input == "exit"
+
+        if user_input == "exit"
+          break
+        elsif user_input == "reset"
+          puts "Resetting context..."
+          @chat.reset_context
+        else
+          response = @chat.ask user_input
+          puts response.content
+        end
         
-        response = @chat.ask user_input
-        puts response.content
       rescue RubyLLM::RateLimitError => e
         puts "Rate limit exceeded. Please wait before sending more requests."
         sleep 70
