@@ -7,4 +7,8 @@ For all tasks, also do the following:
   b. The summary should be detailed enough that you don't have to read the full file again
   c. You should read your summary (if it exists) before reading the file
   d. If you summary doesn't have the information you need, read the file and update your summary with more information
-3. Always auto-apply rubocop as a final step
+3. When writing code:
+  a. Minimize token usage
+  b. Keep variable names descriptive
+  c. Auto-apply rubocop
+  d. Pass rubocop

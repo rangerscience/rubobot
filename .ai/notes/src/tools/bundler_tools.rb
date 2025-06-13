@@ -1,16 +1,12 @@
-Bundler tools optimized for minimal token usage:
-- Base class B (was BundlerTool) with methods:
-  - r: runs bundle command (was run_bundle_command)
-  - b: builds command string (was build_command)
-- Tool classes with shorter descriptions:
-  - Install: bundle install (path/without/jobs params)
-  - Update: bundle update (gems/group/source params)
-  - Add: bundle add gem_name (version/group params)
-  - Remove: bundle remove gem_name
-  - List: bundle list (name filter param)
-  - Info: bundle info gem_name
-  - Outdated: bundle outdated (filter param)
-- Preserved all functionality and parameter descriptions
-- Removed whitespace, shortened variable names (k,v), minimized syntax
-- Kept parameter names descriptive in execute methods
-- Maintained all tool descriptions for LLM understanding
+Tools::Bundler module:
+- Helper methods:
+  - run_bundle_command: Executes bundle commands and handles output/errors
+  - build_command: Constructs command string with appropriate arguments
+- Tool classes (all inherit from Tool):
+  - Install: Installs dependencies from Gemfile (params: path, without, jobs)
+  - Update: Updates specified gems (params: gems, group, source)
+  - Add: Adds gem to Gemfile (params: gem_name, version, group)
+  - Remove: Removes gem from Gemfile (params: gem_name)
+  - List: Lists all gems (params: name for filtering)
+  - Info: Shows info for specific gem (params: gem_name)
+  - Outdated: Shows outdated gems (params: filter)
