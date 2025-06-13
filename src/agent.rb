@@ -1,50 +1,69 @@
-require 'ruby_llm'
+# frozen_string_literal: true
+
+require 'debug'
 require 'fileutils'
 require 'logger'
-require 'debug'
+require 'ruby_llm'
 
 # Dynamically require all tool files
-Dir[File.join(__dir__, 'tools', '*.rb')].each do |file|
+Dir[File.join(__dir__, 'tools', '*.rb')].sort.each do |file|
   require_relative file
 end
 
 class Agent
   def initialize(working_dir: './')
     @working_dir = working_dir
-    FileUtils.mkdir_p(@working_dir) unless Dir.exist?(@working_dir)
+    FileUtils.mkdir_p(@working_dir)
 
     # Initialize chat with tools
     initialize_chat
   end
 
+  def tools(base = Tools)
+    base.constants.flat_map do |const|
+      tool = base.const_get(const)
+      if tool.is_a?(Class) && tool.ancestors.include?(RubyLLM::Tool)
+        tool
+      elsif tool.is_a?(Module)
+        tools(tool)
+      end
+    end.compact
+  end
+
+  def instructions
+    return @instructions if @instructions
+
+    instructions_file = File.join(@working_dir, '.ai', 'instructions.txt')
+    return nil unless File.exist?(instructions_file)
+
+    @instructions = File.read(instructions_file).strip
+  end
+
+  def prompt
+    return @prompt if @prompt
+
+    prompt_file = File.join(@working_dir, '.ai', 'prompt.txt')
+    return nil unless File.exist?(prompt_file)
+
+    @prompt = File.read(prompt_file).strip
+  end
+
   def initialize_chat
     @chat = RubyLLM.chat
-
-    # Find all tool classes in the Tools namespace
-    tools = []
-
-    # Add regular tools
-    Tools.constants.each do |const|
-      tool = Tools.const_get(const)
-      if tool.is_a?(Class) && tool.ancestors.include?(RubyLLM::Tool)
-        tools << tool
-      elsif tool.is_a?(Module)
-        # Handle nested modules like Tools::Git
-        tool.constants.each do |nested_const|
-          nested_tool = tool.const_get(nested_const)
-          tools << nested_tool if nested_tool.is_a?(Class) && nested_tool.ancestors.include?(RubyLLM::Tool)
-        end
-      end
-    end
-
-    # Load all tools
     @chat.with_tools(*tools)
+    @chat.with_instructions instructions unless instructions.nil?
+  end
 
-    # Read baseline prompt from file
-    return unless File.exist?(File.join(@working_dir, '.ai', 'base.txt'))
-
-    base = File.read(File.join(@working_dir, '.ai', 'base.txt'))
-    @chat.with_instructions base unless base.empty?
+  def chat(msg)
+    response = @chat.ask msg
+    response.content
+  rescue RubyLLM::RateLimitError
+    puts 'Rate limit exceeded. Please wait before sending more requests.'
+    sleep 70
+    retry
+  rescue RubyLLM::Error => e
+    puts "Error: #{e.message}"
+    nil
   end
 
   def run
@@ -55,44 +74,23 @@ class Agent
     original_dir = Dir.pwd
     Dir.chdir(@working_dir)
 
-    if File.exist? File.join(@working_dir, '.ai', 'prompt.txt')
-      prompt = File.read File.join(@working_dir, '.ai', 'prompt.txt')
-      unless prompt.empty?
-        begin
-          response = @chat.ask prompt
-          puts response.content
-        rescue RubyLLM::RateLimitError => e
-          puts 'Rate limit exceeded. Please wait before sending more requests.'
-          sleep 70
-          retry
-        end
+    chat prompt unless prompt.nil?
+
+    loop do
+      print '> '
+      user_input = $stdin.gets.chomp
+
+      if user_input == 'exit'
+        break
+      elsif user_input == 'reset'
+        puts 'Resetting context...'
+        initialize_chat
+      else
+        chat user_input
       end
     end
-
-    begin
-      loop do
-        print '> '
-        user_input = $stdin.gets.chomp
-
-        if user_input == 'exit'
-          break
-        elsif user_input == 'reset'
-          puts 'Resetting context...'
-          initialize_chat
-        else
-          response = @chat.ask user_input
-          puts response.content
-        end
-      rescue RubyLLM::RateLimitError => e
-        puts 'Rate limit exceeded. Please wait before sending more requests.'
-        sleep 70
-        retry
-      end
-    rescue RubyLLM::Error => e
-      debugger
-    ensure
-      # Change back to the original directory before exiting
-      Dir.chdir(original_dir)
-    end
+  ensure
+    # Change back to the original directory before exiting
+    Dir.chdir(original_dir)
   end
 end
