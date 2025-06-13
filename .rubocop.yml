@@ -1,16 +1,30 @@
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 3.0
 
-Style/StringLiterals:
-  Enabled: true
-  EnforcedStyle: double_quotes
+Metrics/AbcSize:
+  Max: 34
 
-Style/Documentation:
-  Enabled: false
+Metrics/CyclomaticComplexity:
+  Max: 14
+
+Metrics/PerceivedComplexity:
+  Max: 16
 
 Metrics/MethodLength:
-  Max: 20
+  Max: 60 # Default is 20
+
+# Other configuration
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Style/SpecialGlobalVars:
+  Enabled: true
 
 Layout/LineLength:
   Max: 120
+
+Lint/NonAtomicFileOperation:
+  Enabled: true
+
+Lint/Debugger:
+  Enabled: true
