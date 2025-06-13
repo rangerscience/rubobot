@@ -13,7 +13,9 @@ Metrics/PerceivedComplexity:
 Metrics/MethodLength:
   Max: 60 # Default is 20
 
-# Other configuration
+Style/Documentation:
+  Enabled: false
+
 Style/FrozenStringLiteralComment:
   Enabled: true
 

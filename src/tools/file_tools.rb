@@ -1,31 +1,25 @@
-require "ruby_llm/tool"
+# frozen_string_literal: true
+
+require 'ruby_llm/tool'
 
 module Tools
-  # Helper module to check for restricted files
-  module FileRestrictions
-    RESTRICTED_FILES = [".env", ".mise.toml"]
+  RESTRICTED_FILES = ['.env', '.mise.toml'].freeze
+  RESTRICTED_MESSAGE = 'Access to this file is restricted for security reasons. This file contains sensitive configuration and cannot be accessed.'
 
-    def self.restricted?(path)
-      filename = File.basename(path)
-      RESTRICTED_FILES.include?(filename)
-    end
-
-    def self.check_restrictions(path)
-      if restricted?(path)
-        return { restricted: true,
-                 message: "Access to #{path} is restricted for security reasons. This file contains sensitive configuration and cannot be accessed." }
-      end
-
-      { restricted: false }
+  def self.unless_restricted(path)
+    if RESTRICTED_FILES.include?(File.basename(path))
+      RESTRICTED_MESSAGE
+    else
+      yield
     end
   end
 
   class ListFiles < RubyLLM::Tool
-    description "List files and directories at a given path. If no path is provided, lists files in the current directory. Note: While you can see .env and .mise.toml files in listings, you cannot read or modify them."
-    param :path, desc: "Optional relative path to list files from. Defaults to current directory if not provided."
+    description 'List files and directories. Restricted files are visible but cannot be accessed.'
+    param :path, desc: 'Path to list files from (optional, defaults to current directory)'
 
-    def execute(path: "")
-      Dir.glob(File.join(path, "*"))
+    def execute(path: '')
+      Dir.glob(File.join(path, '*'))
          .map { |filename| File.directory?(filename) ? "#{filename}/" : filename }
     rescue StandardError => e
       { error: e.message }
@@ -33,38 +27,29 @@ module Tools
   end
 
   class ReadFile < RubyLLM::Tool
-    description "Read the contents of a given relative file path. Use this when you want to see what's inside a file. Do not use this with directory names. Note: Reading .env and .mise.toml files is restricted."
-    param :path, desc: "The relative path of a file in the working directory."
+    description "Show file contents. Cannot read restricted files or directories."
+    param :path, desc: 'File path to read'
 
     def execute(path:)
-      check = FileRestrictions.check_restrictions(path)
-      return check[:message] if check[:restricted]
-
-      File.read(path)
+      unless_restricted(path) do
+        File.read(path)
+      end
     rescue StandardError => e
       { error: e.message }
     end
   end
 
   class WriteFile < RubyLLM::Tool
-    description "Write content to a file at the specified path. If the file already exists, it will be overwritten. Note: Writing to .env and .mise.toml files is restricted."
-    param :path, desc: "The relative path of the file to write."
-    param :content, desc: "The content to write to the file."
+    description 'Write content to a file at the specified path. If the file already exists, it will be overwritten. Note: Writing to .env and .mise.toml files is restricted.'
+    param :path, desc: 'The relative path of the file to write.'
+    param :content, desc: 'The content to write to the file.'
 
     def execute(path:, content:)
-      check = FileRestrictions.check_restrictions(path)
-      return check[:message] if check[:restricted]
-
-      puts "Writing to #{path}"
-
-      # Create directory if it doesn't exist
-      dir = File.dirname(path)
-      FileUtils.mkdir_p(dir) unless dir == "." || Dir.exist?(dir)
-
-      # Write the content to the file
-      File.write(path, content)
-
-      "Successfully wrote #{content.bytesize} bytes to #{path}"
+      unless_restricted(path) do
+        dir = File.dirname(path)
+        FileUtils.mkdir_p(dir) unless dir == '.' || Dir.exist?(dir)
+        File.write(path, content)
+      end
     rescue StandardError => e
       { error: e.message }
     end
@@ -81,16 +66,15 @@ module Tools
 
       Note: Editing .env and .mise.toml files is restricted.
     DESCRIPTION
-    param :path, desc: "The path to the file"
-    param :old_str, desc: "Text to search for - must match exactly and must only have one match exactly"
-    param :new_str, desc: "Text to replace old_str with"
+    param :path, desc: 'The path to the file'
+    param :old_str, desc: 'Text to search for - must match exactly and must only have one match exactly'
+    param :new_str, desc: 'Text to replace old_str with'
 
     def execute(path:, old_str:, new_str:)
-      check = FileRestrictions.check_restrictions(path)
-      return check[:message] if check[:restricted]
-
-      content = File.exist?(path) ? File.read(path) : ""
-      File.write(path, content.sub(old_str, new_str))
+      unless_restricted(path) do
+        content = File.exist?(path) ? File.read(path) : ''
+        File.write(path, content.sub(old_str, new_str))
+      end
     rescue StandardError => e
       { error: e.message }
     end
