@@ -12,3 +12,4 @@ For all tasks, also do the following:
   b. Keep variable names descriptive
   c. Auto-apply rubocop
   d. Pass rubocop
+  c. Prepend all commit messages with [AGENT]
