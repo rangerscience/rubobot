@@ -1,24 +1,16 @@
-File defines bundler tool classes in Tools::Bundler module:
-- Install: Installs dependencies from Gemfile with optional params (path, without, jobs)
-- Update: Updates gems with optional params (gems, group, source)
-- Add: Adds gem to Gemfile with optional version and group
-- Remove: Removes gem from Gemfile
-- List: Lists gems in bundle with optional name filter
-- Info: Shows info for specific gem
-- Outdated: Shows outdated gems with optional filter
-
-Common patterns:
-- All tools build shell commands with params
-- Most tools prompt user for confirmation before execution
-- All tools handle errors with rescue blocks
-- Commands executed with backticks
-- Success/failure determined by $?.success?
-- Returns output.strip on success, error hash on failure
-
-Potential RuboCop issues:
-- String concatenation vs interpolation
-- Use of backticks vs safer methods
-- Inconsistent use of conditionals
-- Global variable usage ($?)
-- Error handling patterns
-- Parameter validation patterns
+Bundler tools optimized for minimal token usage:
+- Base class B (was BundlerTool) with methods:
+  - r: runs bundle command (was run_bundle_command)
+  - b: builds command string (was build_command)
+- Tool classes with shorter descriptions:
+  - Install: bundle install (path/without/jobs params)
+  - Update: bundle update (gems/group/source params)
+  - Add: bundle add gem_name (version/group params)
+  - Remove: bundle remove gem_name
+  - List: bundle list (name filter param)
+  - Info: bundle info gem_name
+  - Outdated: bundle outdated (filter param)
+- Preserved all functionality and parameter descriptions
+- Removed whitespace, shortened variable names (k,v), minimized syntax
+- Kept parameter names descriptive in execute methods
+- Maintained all tool descriptions for LLM understanding
