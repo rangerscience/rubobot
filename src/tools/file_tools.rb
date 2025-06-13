@@ -2,15 +2,16 @@
 
 require 'ruby_llm/tool'
 require_relative '../tool'
+require 'find'
 
 module Tools
   module Files
-    RESTRICTED_FILES = ['.env', '.mise.toml'].freeze
-    RESTRICTED_MESSAGE = 'Access restricted for security reasons.'
+    RESTRICTED = ['.env', '.mise.toml'].freeze
+    R_MSG = 'Access restricted for security reasons.'
 
-    def self.unless_restricted(path)
-      if RESTRICTED_FILES.include?(File.basename(path))
-        RESTRICTED_MESSAGE
+    def self.safe(path)
+      if RESTRICTED.include?(File.basename(path))
+        R_MSG
       else
         yield
       end
@@ -31,7 +32,7 @@ module Tools
       param :path, desc: 'File to read'
 
       def execute(path:)
-        Tools::Files.unless_restricted(path) { File.read(path) }
+        Tools::Files.safe(path) { File.read(path) }
       end
     end
 
@@ -41,7 +42,7 @@ module Tools
       param :content, desc: 'Content to write'
 
       def execute(path:, content:)
-        Tools::Files.unless_restricted(path) do
+        Tools::Files.safe(path) do
           dir = File.dirname(path)
           FileUtils.mkdir_p(dir) unless dir == '.' || Dir.exist?(dir)
           File.write(path, content)
@@ -56,10 +57,20 @@ module Tools
       param :new_str, desc: 'Replacement text'
 
       def execute(path:, old_str:, new_str:)
-        Tools::Files.unless_restricted(path) do
+        Tools::Files.safe(path) do
           content = File.exist?(path) ? File.read(path) : ''
           File.write(path, content.sub(old_str, new_str))
         end
+      end
+    end
+
+    class Find < Tool
+      description 'Find files matching a pattern'
+      param :path, desc: 'Base directory to search from'
+      param :pattern, desc: 'Glob pattern to match files (e.g., "**/*.rb")'
+
+      def execute(path: '.', pattern:)
+        Dir.glob(File.join(path, pattern))
       end
     end
   end
