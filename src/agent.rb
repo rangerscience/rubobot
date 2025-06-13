@@ -66,7 +66,28 @@ class Agent
     end
   end
 
+  def estimate_token_count(text)
+    # Simple estimation: ~4 characters per token on average
+    # This is a rough approximation; more accurate counting would require a tokenizer
+    text.length / 4
+  end
+
   def chat(msg)
+    # Check if the input token count exceeds 10,000
+    estimated_tokens = estimate_token_count(msg)
+    if estimated_tokens > 10_000
+      puts "Message is very large (estimated #{estimated_tokens} tokens). Requesting a summary of prior context..."
+      
+      # Ask the agent to summarize prior messages
+      summary_prompt = "The conversation history is getting quite long. Please provide a concise summary of all prior messages to minimize token usage going forward. Focus only on the most important information and context needed to continue the conversation effectively."
+      
+      # Send the summary request to the agent
+      @chat.ask(summary_prompt)
+      
+      # After getting the summary, continue with the original message
+      puts "Continuing with your original message..."
+    end
+    
     delay(@input_tokens, 20_000 - msg.split.count)
     @chat.ask(msg)
   rescue RubyLLM::RateLimitError
