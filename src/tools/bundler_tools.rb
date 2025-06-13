@@ -18,16 +18,10 @@ module Tools
         cmd += " --without=#{without}" if without && !without.empty?
         cmd += " --jobs=#{jobs}" if jobs && !jobs.empty?
 
-        puts "AI wants to execute the following bundler command: '#{cmd}'"
-        print 'Do you want to execute it? (y/n) '
-        response = gets.chomp
-        return { error: 'User declined to execute the command' } unless response == 'y'
-
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
-          output.strip
+        if $CHILD_STATUS.success?
+          "Bundle install succeeded"
         else
           { error: "Bundle install failed: #{output.strip}" }
         end
@@ -57,16 +51,10 @@ module Tools
         cmd += " --group=#{group}" if group && !group.empty?
         cmd += " --source=#{source}" if source && !source.empty?
 
-        puts "AI wants to execute the following bundler command: '#{cmd}'"
-        print 'Do you want to execute it? (y/n) '
-        response = gets.chomp
-        return { error: 'User declined to execute the command' } unless response == 'y'
-
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
-          output.strip
+        if $CHILD_STATUS.success?
+          "Bundle update succeeded"
         else
           { error: "Bundle update failed: #{output.strip}" }
         end
@@ -87,16 +75,10 @@ module Tools
         cmd += " --version='#{version}'" if version && !version.empty?
         cmd += " --group=#{group}" if group && !group.empty?
 
-        puts "AI wants to execute the following bundler command: '#{cmd}'"
-        print 'Do you want to execute it? (y/n) '
-        response = gets.chomp
-        return { error: 'User declined to execute the command' } unless response == 'y'
-
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
-          output.strip
+        if $CHILD_STATUS.success?
+          "Bundle add succeeded"
         else
           { error: "Bundle add failed: #{output.strip}" }
         end
@@ -113,16 +95,10 @@ module Tools
       def execute(gem_name:)
         cmd = "bundle remove #{gem_name}"
 
-        puts "AI wants to execute the following bundler command: '#{cmd}'"
-        print 'Do you want to execute it? (y/n) '
-        response = gets.chomp
-        return { error: 'User declined to execute the command' } unless response == 'y'
-
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
-          output.strip
+        if $CHILD_STATUS.success?
+          "Bundle remove succeeded"
         else
           { error: "Bundle remove failed: #{output.strip}" }
         end
@@ -141,9 +117,8 @@ module Tools
         cmd += " --name=#{name}" if name && !name.empty?
 
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
+        if $CHILD_STATUS.success?
           output.strip
         else
           { error: "Bundle list failed: #{output.strip}" }
@@ -162,9 +137,8 @@ module Tools
         cmd = "bundle info #{gem_name}"
 
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
+        if $CHILD_STATUS.success?
           output.strip
         else
           { error: "Bundle info failed: #{output.strip}" }
@@ -184,9 +158,8 @@ module Tools
         cmd += " #{filter}" if filter && !filter.empty?
 
         output = `#{cmd} 2>&1`
-        status = $CHILD_STATUS.success?
 
-        if status
+        if $CHILD_STATUS.success?
           output.strip.empty? ? 'No outdated gems found.' : output.strip
         else
           { error: "Bundle outdated failed: #{output.strip}" }
