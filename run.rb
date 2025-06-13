@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Load the gems and environment variables from .env file.
 Dir.chdir(__dir__) do
