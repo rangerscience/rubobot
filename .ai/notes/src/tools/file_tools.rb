@@ -1,8 +1,8 @@
-File tools module with 4 tools:
-1. ListFiles - Lists files in a directory
-2. ReadFile - Reads file contents
-3. WriteFile - Writes content to a file
-4. EditFile - Replaces text in a file
+The file_tools.rb defines four tools for file operations:
+1. List - Lists files and directories in a specified path
+2. Read - Reads contents of a file
+3. Write - Writes content to a file (creates directories if needed)
+4. Edit - Replaces text in a file using string substitution
 
-All tools have restrictions for .env and .mise.toml files.
-Current descriptions are verbose and need simplification.
+The module implements security by restricting access to sensitive files (.env, .mise.toml) through a helper method.
+Each tool inherits from Tool class and defines parameters and execute method.
