@@ -17,4 +17,6 @@ RubyLLM.configure do |config|
   config.retry_backoff_factor = 2
 end
 
-Agent.new.run
+# Allow specifying a working directory as a command-line argument
+working_dir = ARGV[0] || "./"
+Agent.new(working_dir: working_dir).run
