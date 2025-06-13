@@ -80,7 +80,7 @@ class Agent
           break
         elsif user_input == "reset"
           puts "Resetting context..."
-          @chat.reset_context
+          initialize_chat
         else
           response = @chat.ask user_input
           puts response.content
