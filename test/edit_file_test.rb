@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require_relative '../src/tools/edit_file'
 
@@ -17,7 +19,7 @@ class TestEditFile < Minitest::Test
   end
 
   def test_editing_an_existing_file
-    filename = Dir.tmpdir + '/foo.txt'
+    filename = "#{Dir.tmpdir}/foo.txt"
     raise "File #{filename} should not exist before test" if File.exist?(filename)
 
     @tool.execute(path: filename, old_str: '', new_str: 'Some fresh content')

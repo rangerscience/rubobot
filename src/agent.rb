@@ -29,10 +29,8 @@ class Agent
   end
 
   def instructions
-    @instructions ||= (
-      read_file(File.join(@working_dir, '.ai', 'instructions.txt')) ||
-      read_file(File.join('.ai', 'instructions.txt'))
-    )
+    @instructions ||= read_file(File.join(@working_dir, '.ai', 'instructions.txt')) ||
+                      read_file(File.join('.ai', 'instructions.txt'))
   end
 
   def prompt
@@ -62,6 +60,7 @@ class Agent
     puts '...'
     loop do
       return if token_usage_last_minute(tokens) < limit
+
       print '.'
       sleep(1)
     end
