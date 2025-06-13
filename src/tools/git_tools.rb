@@ -31,7 +31,7 @@ module Tools
     end
 
     class Status < Tool
-      description 'Show the working tree status. Displays paths that have differences between the index file and the current HEAD commit, paths that have differences between the working tree and the index file, and paths in the working tree that are not tracked by Git.'
+      description 'Show the working tree status.'
 
       def execute
         return { error: 'Not a git repository' } unless Dir.exist?('.git')
@@ -76,8 +76,8 @@ module Tools
 
         if format
           format = format.downcase
-          cmd += format == 'oneline' ? ' --oneline' : " --format=#{format}" if %w[oneline short medium full
-                                                                                  fuller].include?(format)
+          valid_formats = %w[oneline short medium full fuller]
+          cmd += format == 'oneline' ? ' --oneline' : " --format=#{format}" if valid_formats.include?(format)
         end
 
         cmd += " -- #{path}" if path && !path.empty?
