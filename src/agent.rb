@@ -1,7 +1,7 @@
 require "ruby_llm"
 require "fileutils"
 require "logger"
-require 'debug'
+require "debug"
 
 # Dynamically require all tool files
 Dir[File.join(__dir__, "tools", "*.rb")].each do |file|
@@ -12,11 +12,11 @@ class Agent
   def initialize(working_dir: "./")
     @working_dir = working_dir
     FileUtils.mkdir_p(@working_dir) unless Dir.exist?(@working_dir)
-    
+
     # Initialize chat with tools
     initialize_chat
   end
-  
+
   def initialize_chat
     @chat = RubyLLM.chat
 
@@ -32,38 +32,36 @@ class Agent
         # Handle nested modules like Tools::Git
         tool.constants.each do |nested_const|
           nested_tool = tool.const_get(nested_const)
-          if nested_tool.is_a?(Class) && nested_tool.ancestors.include?(RubyLLM::Tool)
-            tools << nested_tool
-          end
+          tools << nested_tool if nested_tool.is_a?(Class) && nested_tool.ancestors.include?(RubyLLM::Tool)
         end
       end
     end
-    
+
     # Register custom tools that use the registry pattern
     registry = @chat.registry
     Tools::RubocopTools.register(registry) if defined?(Tools::RubocopTools)
-    
+
     # Load all tools
     @chat.with_tools(*tools)
-    
+
     # Read baseline prompt from file
-    if File.exist?(File.join(@working_dir, ".ai", "base.txt"))
-      base = File.read(File.join(@working_dir, ".ai", "base.txt"))
-      @chat.with_instructions base if !base.empty?
-    end
+    return unless File.exist?(File.join(@working_dir, ".ai", "base.txt"))
+
+    base = File.read(File.join(@working_dir, ".ai", "base.txt"))
+    @chat.with_instructions base unless base.empty?
   end
 
   def run
     puts "Chat with the agent. Type 'exit' to ... well, exit"
     puts "Working in directory: #{@working_dir}"
-    
+
     # Change to the working directory
     original_dir = Dir.pwd
     Dir.chdir(@working_dir)
 
     if File.exist? File.join(@working_dir, ".ai", "prompt.txt")
       prompt = File.read File.join(@working_dir, ".ai", "prompt.txt")
-      if !prompt.empty?
+      unless prompt.empty?
         begin
           response = @chat.ask prompt
           puts response.content
@@ -74,7 +72,7 @@ class Agent
         end
       end
     end
-    
+
     begin
       loop do
         print "> "
@@ -89,7 +87,6 @@ class Agent
           response = @chat.ask user_input
           puts response.content
         end
-        
       rescue RubyLLM::RateLimitError => e
         puts "Rate limit exceeded. Please wait before sending more requests."
         sleep 70

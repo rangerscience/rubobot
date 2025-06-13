@@ -3,17 +3,19 @@ require "ruby_llm/tool"
 module Tools
   # Helper module to check for restricted files
   module FileRestrictions
-    RESTRICTED_FILES = ['.env', '.mise.toml']
-    
+    RESTRICTED_FILES = [".env", ".mise.toml"]
+
     def self.restricted?(path)
       filename = File.basename(path)
       RESTRICTED_FILES.include?(filename)
     end
-    
+
     def self.check_restrictions(path)
       if restricted?(path)
-        return { restricted: true, message: "Access to #{path} is restricted for security reasons. This file contains sensitive configuration and cannot be accessed." }
+        return { restricted: true,
+                 message: "Access to #{path} is restricted for security reasons. This file contains sensitive configuration and cannot be accessed." }
       end
+
       { restricted: false }
     end
   end
@@ -25,7 +27,7 @@ module Tools
     def execute(path: "")
       Dir.glob(File.join(path, "*"))
          .map { |filename| File.directory?(filename) ? "#{filename}/" : filename }
-    rescue => e
+    rescue StandardError => e
       { error: e.message }
     end
   end
@@ -37,9 +39,9 @@ module Tools
     def execute(path:)
       check = FileRestrictions.check_restrictions(path)
       return check[:message] if check[:restricted]
-      
+
       File.read(path)
-    rescue => e
+    rescue StandardError => e
       { error: e.message }
     end
   end
@@ -52,18 +54,18 @@ module Tools
     def execute(path:, content:)
       check = FileRestrictions.check_restrictions(path)
       return check[:message] if check[:restricted]
-      
+
       puts "Writing to #{path}"
-      
+
       # Create directory if it doesn't exist
       dir = File.dirname(path)
       FileUtils.mkdir_p(dir) unless dir == "." || Dir.exist?(dir)
-      
+
       # Write the content to the file
       File.write(path, content)
-      
+
       "Successfully wrote #{content.bytesize} bytes to #{path}"
-    rescue => e
+    rescue StandardError => e
       { error: e.message }
     end
   end
@@ -76,7 +78,7 @@ module Tools
       'old_str' and 'new_str' MUST be different from each other.
 
       If the file specified with path doesn't exist, it will be created.
-      
+
       Note: Editing .env and .mise.toml files is restricted.
     DESCRIPTION
     param :path, desc: "The path to the file"
@@ -86,10 +88,10 @@ module Tools
     def execute(path:, old_str:, new_str:)
       check = FileRestrictions.check_restrictions(path)
       return check[:message] if check[:restricted]
-      
+
       content = File.exist?(path) ? File.read(path) : ""
       File.write(path, content.sub(old_str, new_str))
-    rescue => e
+    rescue StandardError => e
       { error: e.message }
     end
   end

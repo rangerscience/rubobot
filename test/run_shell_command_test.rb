@@ -30,7 +30,7 @@ class TestRunShellCommand < Minitest::Test
   def test_command_failure
     @tool.stub :gets, "y\n" do
       result = @tool.execute(command: "nosuchcommand")
-      assert_equal({error: "No such file or directory - nosuchcommand"}, result)
+      assert_equal({ error: "No such file or directory - nosuchcommand" }, result)
     end
   end
 end

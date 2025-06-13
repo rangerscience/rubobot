@@ -41,14 +41,14 @@ module Tools
         else
           { error: "Commit failed: #{commit_output.strip}" }
         end
-      rescue => e
+      rescue StandardError => e
         { error: e.message }
       end
     end
 
     class Status < RubyLLM::Tool
       description "Show the working tree status. Displays paths that have differences between the index file and the current HEAD commit, paths that have differences between the working tree and the index file, and paths in the working tree that are not tracked by Git."
-      
+
       def execute
         # Validate git repository
         unless Dir.exist?(".git")
@@ -63,7 +63,7 @@ module Tools
         else
           { error: "Git status failed: #{status_output.strip}" }
         end
-      rescue => e
+      rescue StandardError => e
         { error: e.message }
       end
     end
@@ -72,7 +72,7 @@ module Tools
       description "Show changes between commits, commit and working tree, etc."
       param :path, desc: "Optional path to specific file or directory to show diff for.", required: false
       param :staged, desc: "Whether to show staged changes (--cached). Set to true or false.", required: false
-      
+
       def execute(path: nil, staged: false)
         # Validate git repository
         unless Dir.exist?(".git")
@@ -92,7 +92,7 @@ module Tools
         else
           { error: "Git diff failed: #{diff_output.strip}" }
         end
-      rescue => e
+      rescue StandardError => e
         { error: e.message }
       end
     end
@@ -101,8 +101,9 @@ module Tools
       description "Show commit logs."
       param :number, desc: "Number of commits to show. Default is 10.", required: false
       param :path, desc: "Optional path to specific file or directory to show history for.", required: false
-      param :format, desc: "Format of the log output. Options: 'oneline', 'short', 'medium', 'full', 'fuller'.", required: false
-      
+      param :format, desc: "Format of the log output. Options: 'oneline', 'short', 'medium', 'full', 'fuller'.",
+                     required: false
+
       def execute(number: 10, path: nil, format: nil)
         # Validate git repository
         unless Dir.exist?(".git")
@@ -110,16 +111,16 @@ module Tools
         end
 
         cmd = "git log -n #{number}"
-        
+
         if format
           case format.downcase
-          when 'oneline'
+          when "oneline"
             cmd += " --oneline"
-          when 'short', 'medium', 'full', 'fuller'
+          when "short", "medium", "full", "fuller"
             cmd += " --format=#{format.downcase}"
           end
         end
-        
+
         cmd += " -- #{path}" if path && !path.empty?
         cmd += " 2>&1"
 
@@ -131,7 +132,7 @@ module Tools
         else
           { error: "Git log failed: #{log_output.strip}" }
         end
-      rescue => e
+      rescue StandardError => e
         { error: e.message }
       end
     end

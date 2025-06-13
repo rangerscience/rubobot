@@ -12,7 +12,7 @@ module Tools
       return { error: "User declined to execute the command" } unless response == "y"
 
       `#{command}`
-    rescue => e
+    rescue StandardError => e
       { error: e.message }
     end
   end

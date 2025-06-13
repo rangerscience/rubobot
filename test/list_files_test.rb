@@ -9,7 +9,7 @@ class TestListFiles < Minitest::Test
   def test_list_files_in_existing_directory
     expected = [
       "test/fixtures/readme.txt",
-      "test/fixtures/subfolder/",
+      "test/fixtures/subfolder/"
     ]
     result = @tool.execute(path: "test/fixtures/")
     assert_equal expected, result
