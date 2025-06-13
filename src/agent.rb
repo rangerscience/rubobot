@@ -9,28 +9,35 @@ require_relative "tools/edit_file"
 require_relative "tools/run_shell_command"
 require_relative "tools/write_file"
 require_relative "tools/git"
+require_relative "tools/reset_context"
 
 class Agent
   def initialize(working_dir: "./")
-    @chat = RubyLLM.chat
-    @chat.with_tools(Tools::ReadFile, Tools::ListFiles, Tools::EditFile, Tools::RunShellCommand, Tools::WriteFile, 
-                    Tools::Git::Commit, Tools::Git::Status, Tools::Git::Diff, Tools::Git::Log)
-    
-    # Set up working directory
     @working_dir = working_dir
     FileUtils.mkdir_p(@working_dir) unless Dir.exist?(@working_dir)
-
-    # @chat.on_new_message do |message|
-    #   debugger
-    # end
-
-    # @chat.on_end_message do |message|
-    #   debugger
-    # end
-
+    
+    # Initialize chat with tools
+    initialize_chat
+  end
+  
+  def initialize_chat
+    @chat = RubyLLM.chat
+    @chat.with_tools(Tools::ReadFile, Tools::ListFiles, Tools::EditFile, 
+                    Tools::RunShellCommand, Tools::WriteFile, 
+                    Tools::Git::Commit, Tools::Git::Status, Tools::Git::Diff, Tools::Git::Log,
+                    Tools::ResetContext)
+    
     # Read baseline prompt from file
-    base = File.read(File.join(working_dir, ".ai", "base.txt"))
-    @chat.with_instructions base if !base.empty?
+    if File.exist?(File.join(@working_dir, ".ai", "base.txt"))
+      base = File.read(File.join(@working_dir, ".ai", "base.txt"))
+      @chat.with_instructions base if !base.empty?
+    end
+  end
+  
+  def reset_context
+    # Create a new chat instance with the same configuration
+    initialize_chat
+    puts "Chat context has been reset."
   end
 
   def run
