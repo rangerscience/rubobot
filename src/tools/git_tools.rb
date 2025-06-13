@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+require 'English'
 require_relative '../tool'
 
 module Tools
@@ -23,7 +26,7 @@ module Tools
                      end
 
         commit_output = `git commit -m "#{message}" 2>&1`
-        $?.success? ? "#{add_result}\n#{commit_output.strip}" : { error: "Commit failed: #{commit_output.strip}" }
+        $CHILD_STATUS.success? ? "#{add_result}\n#{commit_output.strip}" : { error: "Commit failed: #{commit_output.strip}" }
       end
     end
 
@@ -34,7 +37,7 @@ module Tools
         return { error: 'Not a git repository' } unless Dir.exist?('.git')
 
         status_output = `git status 2>&1`
-        $?.success? ? status_output.strip : { error: "Git status failed: #{status_output.strip}" }
+        $CHILD_STATUS.success? ? status_output.strip : { error: "Git status failed: #{status_output.strip}" }
       end
     end
 
@@ -51,7 +54,7 @@ module Tools
         cmd += " #{path}" if path && !path.empty?
 
         diff_output = `#{cmd} 2>&1`
-        if $?.success?
+        if $CHILD_STATUS.success?
           diff_output.empty? ? 'No changes found.' : diff_output.strip
         else
           { error: "Git diff failed: #{diff_output.strip}" }
@@ -80,7 +83,7 @@ module Tools
         cmd += " -- #{path}" if path && !path.empty?
 
         log_output = `#{cmd} 2>&1`
-        if $?.success?
+        if $CHILD_STATUS.success?
           log_output.empty? ? 'No commit history found.' : log_output.strip
         else
           { error: "Git log failed: #{log_output.strip}" }

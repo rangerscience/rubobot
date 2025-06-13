@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+require 'English'
 require_relative '../tool'
 require 'json'
 
@@ -31,7 +34,7 @@ module Tools
 
           text
         rescue JSON::ParserError
-          $?.success? ? output : { error: "RuboCop lint failed: #{output}" }
+          $CHILD_STATUS.success? ? output : { error: "RuboCop lint failed: #{output}" }
         end
       end
     end
@@ -46,7 +49,7 @@ module Tools
       def execute(path: nil, safe: 'true')
         flag = safe.to_s.downcase == 'true' ? '-a' : '-A'
         output = `bundle exec rubocop #{flag} #{path} 2>&1`.strip
-        $?.success? ? "RuboCop autocorrection completed:\n#{output}" : { error: "Failed: #{output}" }
+        $CHILD_STATUS.success? ? "RuboCop autocorrection completed:\n#{output}" : { error: "Failed: #{output}" }
       end
     end
 
@@ -56,7 +59,7 @@ module Tools
 
       def execute(cop_name:)
         output = `bundle exec rubocop --help #{cop_name} 2>&1`
-        return { error: "Failed: #{output}" } unless $?.success?
+        return { error: "Failed: #{output}" } unless $CHILD_STATUS.success?
 
         output.include?('no documentation') ? "No docs for #{cop_name}" : "#{cop_name}:\n#{output}"
       end
