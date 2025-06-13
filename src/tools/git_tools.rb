@@ -26,7 +26,11 @@ module Tools
                      end
 
         commit_output = `git commit -m "#{message}" 2>&1`
-        $CHILD_STATUS.success? ? "#{add_result}\n#{commit_output.strip}" : { error: "Commit failed: #{commit_output.strip}" }
+        if $CHILD_STATUS.success?
+          "#{add_result}\n#{commit_output.strip}"
+        else
+          { error: "Commit failed: #{commit_output.strip}" }
+        end
       end
     end
 
