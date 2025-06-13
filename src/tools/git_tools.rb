@@ -5,6 +5,24 @@ require_relative '../tool'
 
 module Tools
   module Git
+    class Add < Tool
+      description 'Add file contents to the index.'
+      param :path, desc: 'Files to add content from. Fileglobs can be given to add all matching files.', required: false
+      param :all, desc: 'Add all files by staging all changes, including untracked files.', required: false
+      param :update, desc: 'Update the index just where it already has an entry matching <pathspec>', required: false
+
+      def execute(path: nil, all: false, update: false)
+        return { error: 'Not a git repository' } unless Dir.exist?('.git')
+
+        cmd = 'git add'
+        cmd += ' -A' if all
+        cmd += ' -u' if update
+        cmd += " #{path}" if path && !path.empty?
+
+        run_command(cmd)
+      end
+    end
+
     class Commit < Tool
       description 'Create a git commit with the specified message. Optionally add specific files or add all changes.'
       param :message, desc: 'The commit message.'
