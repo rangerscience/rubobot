@@ -6,4 +6,5 @@ gem "debug"
 
 group :development, :test do
   gem "minitest"
+  gem "rubocop", require: false
 end

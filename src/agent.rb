@@ -39,6 +39,10 @@ class Agent
       end
     end
     
+    # Register custom tools that use the registry pattern
+    registry = @chat.registry
+    Tools::RubocopTools.register(registry) if defined?(Tools::RubocopTools)
+    
     # Load all tools
     @chat.with_tools(*tools)
     
