@@ -8,12 +8,13 @@ require_relative "tools/list_files"
 require_relative "tools/edit_file"
 require_relative "tools/run_shell_command"
 require_relative "tools/write_file"
-require_relative "tools/git_commit"
+require_relative "tools/git"
 
 class Agent
   def initialize(working_dir: "./")
     @chat = RubyLLM.chat
-    @chat.with_tools(Tools::ReadFile, Tools::ListFiles, Tools::EditFile, Tools::RunShellCommand, Tools::WriteFile, Tools::GitCommit)
+    @chat.with_tools(Tools::ReadFile, Tools::ListFiles, Tools::EditFile, Tools::RunShellCommand, Tools::WriteFile, 
+                    Tools::Git::Commit, Tools::Git::Status, Tools::Git::Diff, Tools::Git::Log)
     
     # Set up working directory
     @working_dir = working_dir
