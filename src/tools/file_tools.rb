@@ -69,7 +69,7 @@ module Tools
       param :path, desc: 'Base directory to search from'
       param :pattern, desc: 'Glob pattern to match files (e.g., "**/*.rb")'
 
-      def execute(path: '.', pattern:)
+      def execute(pattern:, path: '.')
         Dir.glob(File.join(path, pattern))
       end
     end
