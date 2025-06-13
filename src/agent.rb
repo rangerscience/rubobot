@@ -1,21 +1,19 @@
 # frozen_string_literal: true
 
-require 'debug'
 require 'fileutils'
-require 'logger'
 require 'ruby_llm'
+require 'time'
+require 'debug'
 
-# Dynamically require all tool files
-Dir[File.join(__dir__, 'tools', '*.rb')].sort.each do |file|
-  require_relative file
-end
+# Require all tool files
+Dir[File.join(__dir__, 'tools', '*.rb')].sort.each { |file| require_relative file }
 
 class Agent
   def initialize(working_dir: './')
     @working_dir = working_dir
     FileUtils.mkdir_p(@working_dir)
-
-    # Initialize chat with tools
+    @input_tokens = []
+    @output_tokens = []
     initialize_chat
   end
 
@@ -31,66 +29,84 @@ class Agent
   end
 
   def instructions
-    return @instructions if @instructions
-
-    instructions_file = File.join(@working_dir, '.ai', 'instructions.txt')
-    return nil unless File.exist?(instructions_file)
-
-    @instructions = File.read(instructions_file).strip
+    @instructions ||= read_file(File.join(@working_dir, '.ai', 'instructions.txt'))
   end
 
   def prompt
-    return @prompt if @prompt
+    @prompt ||= read_file(File.join(@working_dir, '.ai', 'prompt.txt'))
+  end
 
-    prompt_file = File.join(@working_dir, '.ai', 'prompt.txt')
-    return nil unless File.exist?(prompt_file)
-
-    @prompt = File.read(prompt_file).strip
+  def read_file(path)
+    File.exist?(path) ? File.read(path).strip : nil
   end
 
   def initialize_chat
     @chat = RubyLLM.chat
     @chat.with_tools(*tools)
-    @chat.with_instructions instructions unless instructions.nil?
+    @chat.with_instructions(instructions) if instructions
+
+    @chat.on_end_message do |response|
+      now = Time.now
+      # TODO: Feels a little odd that tool calls have nil token counts...
+      @input_tokens << [now, response.input_tokens] unless response.input_tokens.nil?
+      @output_tokens << [now, response.output_tokens] unless response.output_tokens.nil?
+      delay(@input_tokens, 20_000)
+      delay(@output_tokens, 3_000)
+    end
+  end
+
+  def delay(tokens, limit)
+    loop do
+      return if token_usage_last_minute(tokens) < limit
+
+      sleep(1)
+    end
   end
 
   def chat(msg)
-    response = @chat.ask msg
-    response.content
+    delay(@input_tokens, 20_000 - msg.split.count)
+    @chat.ask(msg)
   rescue RubyLLM::RateLimitError
-    puts 'Rate limit exceeded. Please wait before sending more requests.'
-    sleep 70
+    puts 'Rate limit hit. Waiting...'
+    sleep(70)
     retry
   rescue RubyLLM::Error => e
     puts "Error: #{e.message}"
-    nil
+    debugger
+  end
+
+  def token_usage_last_minute(records)
+    cutoff = Time.now - 60
+    records.select { |time, _| time > cutoff }.sum { |_, count| count }
+  end
+
+  def display_usage
+    input = token_usage_last_minute(@input_tokens)
+    output = token_usage_last_minute(@output_tokens)
+    puts "Tokens (last 60s): In: #{input}, Out: #{output}, Total: #{input + output}"
   end
 
   def run
-    puts "Chat with the agent. Type 'exit' to ... well, exit"
-    puts "Working in directory: #{@working_dir}"
+    puts "Chat with the agent. Type 'exit' to exit"
+    puts "Working in: #{@working_dir}"
 
-    # Change to the working directory
-    original_dir = Dir.pwd
+    orig_dir = Dir.pwd
     Dir.chdir(@working_dir)
 
-    chat prompt unless prompt.nil?
+    chat(prompt) if prompt
 
     loop do
       print '> '
-      user_input = $stdin.gets.chomp
+      input = $stdin.gets.chomp
 
-      if user_input == 'exit'
-        break
-      elsif user_input == 'reset'
-        puts 'Resetting context...'
-        initialize_chat
-      else
-        chat user_input
+      case input
+      when 'exit' then break
+      when 'reset' then initialize_chat
+      when 'usage' then display_usage
+      else chat(input)
       end
     end
   ensure
-    # Change back to the original directory before exiting
-    Dir.chdir(original_dir)
+    Dir.chdir(orig_dir)
   end
 end
