@@ -59,9 +59,10 @@ class Agent
   end
 
   def delay(tokens, limit)
+    puts '...'
     loop do
       return if token_usage_last_minute(tokens) < limit
-
+      print '.'
       sleep(1)
     end
   end
