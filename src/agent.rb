@@ -1,15 +1,15 @@
-require "ruby_llm"
-require "fileutils"
-require "logger"
-require "debug"
+require 'ruby_llm'
+require 'fileutils'
+require 'logger'
+require 'debug'
 
 # Dynamically require all tool files
-Dir[File.join(__dir__, "tools", "*.rb")].each do |file|
+Dir[File.join(__dir__, 'tools', '*.rb')].each do |file|
   require_relative file
 end
 
 class Agent
-  def initialize(working_dir: "./")
+  def initialize(working_dir: './')
     @working_dir = working_dir
     FileUtils.mkdir_p(@working_dir) unless Dir.exist?(@working_dir)
 
@@ -41,9 +41,9 @@ class Agent
     @chat.with_tools(*tools)
 
     # Read baseline prompt from file
-    return unless File.exist?(File.join(@working_dir, ".ai", "base.txt"))
+    return unless File.exist?(File.join(@working_dir, '.ai', 'base.txt'))
 
-    base = File.read(File.join(@working_dir, ".ai", "base.txt"))
+    base = File.read(File.join(@working_dir, '.ai', 'base.txt'))
     @chat.with_instructions base unless base.empty?
   end
 
@@ -55,14 +55,14 @@ class Agent
     original_dir = Dir.pwd
     Dir.chdir(@working_dir)
 
-    if File.exist? File.join(@working_dir, ".ai", "prompt.txt")
-      prompt = File.read File.join(@working_dir, ".ai", "prompt.txt")
+    if File.exist? File.join(@working_dir, '.ai', 'prompt.txt')
+      prompt = File.read File.join(@working_dir, '.ai', 'prompt.txt')
       unless prompt.empty?
         begin
           response = @chat.ask prompt
           puts response.content
         rescue RubyLLM::RateLimitError => e
-          puts "Rate limit exceeded. Please wait before sending more requests."
+          puts 'Rate limit exceeded. Please wait before sending more requests.'
           sleep 70
           retry
         end
@@ -71,20 +71,20 @@ class Agent
 
     begin
       loop do
-        print "> "
+        print '> '
         user_input = $stdin.gets.chomp
 
-        if user_input == "exit"
+        if user_input == 'exit'
           break
-        elsif user_input == "reset"
-          puts "Resetting context..."
+        elsif user_input == 'reset'
+          puts 'Resetting context...'
           initialize_chat
         else
           response = @chat.ask user_input
           puts response.content
         end
       rescue RubyLLM::RateLimitError => e
-        puts "Rate limit exceeded. Please wait before sending more requests."
+        puts 'Rate limit exceeded. Please wait before sending more requests.'
         sleep 70
         retry
       end
