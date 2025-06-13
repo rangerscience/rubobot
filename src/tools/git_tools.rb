@@ -14,23 +14,18 @@ module Tools
       def execute(message:, add_all: false, files: nil)
         return { error: 'Not a git repository' } unless Dir.exist?('.git')
 
-        add_result = if add_all
-                       system('git add -A')
-                       'Added all changes.'
-                     elsif files
-                       file_list = files.is_a?(Array) ? files.join(' ') : files
-                       system("git add #{file_list}")
-                       "Added: #{file_list}"
-                     else
-                       'No files added. Committing staged changes.'
-                     end
-
-        commit_output = `git commit -m "#{message}" 2>&1`
-        if $CHILD_STATUS.success?
-          "#{add_result}\n#{commit_output.strip}"
+        if add_all
+          system('git add -A')
+          'Added all changes.'
+        elsif files
+          file_list = files.is_a?(Array) ? files.join(' ') : files
+          system("git add #{file_list}")
+          "Added: #{file_list}"
         else
-          { error: "Commit failed: #{commit_output.strip}" }
+          'No files added. Committing staged changes.'
         end
+
+        run_command(`git commit -m "#{message}"`)
       end
     end
 
@@ -40,8 +35,7 @@ module Tools
       def execute
         return { error: 'Not a git repository' } unless Dir.exist?('.git')
 
-        status_output = `git status 2>&1`
-        $CHILD_STATUS.success? ? status_output.strip : { error: "Git status failed: #{status_output.strip}" }
+        run_command('git status')
       end
     end
 
@@ -57,12 +51,7 @@ module Tools
         cmd += ' --cached' if staged
         cmd += " #{path}" if path && !path.empty?
 
-        diff_output = `#{cmd} 2>&1`
-        if $CHILD_STATUS.success?
-          diff_output.empty? ? 'No changes found.' : diff_output.strip
-        else
-          { error: "Git diff failed: #{diff_output.strip}" }
-        end
+        run_command(cmd)
       end
     end
 
@@ -86,12 +75,7 @@ module Tools
 
         cmd += " -- #{path}" if path && !path.empty?
 
-        log_output = `#{cmd} 2>&1`
-        if $CHILD_STATUS.success?
-          log_output.empty? ? 'No commit history found.' : log_output.strip
-        else
-          { error: "Git log failed: #{log_output.strip}" }
-        end
+        run_command(cmd)
       end
     end
   end

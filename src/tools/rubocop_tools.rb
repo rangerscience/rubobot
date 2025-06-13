@@ -9,7 +9,9 @@ module Tools
     class Lint < Tool
       description 'Run RuboCop to lint your Ruby code and get a report of all offenses.'
       param :path,
-            desc: 'Optional path to specific file or directory to lint. If not provided, all files will be checked.', required: false
+            desc: 'Optional path to specific file or directory to lint. ' \
+                  'If not provided, all files will be checked.',
+            required: false
 
       def execute(path: nil)
         output = `bundle exec rubocop #{path} --format json 2>&1`.strip
@@ -42,9 +44,13 @@ module Tools
     class Autocorrect < Tool
       description 'Run RuboCop autocorrect to automatically fix offenses in your Ruby code.'
       param :path,
-            desc: 'Optional path to specific file or directory to autocorrect. If not provided, all files will be corrected.', required: false
+            desc: 'Optional path to specific file or directory to autocorrect. ' \
+                  'If not provided, all files will be corrected.',
+            required: false
       param :safe,
-            desc: 'Whether to use safe autocorrection (true) or unsafe autocorrection (false). Default is true.', required: false
+            desc: 'Whether to use safe autocorrection (true) or unsafe autocorrection (false). ' \
+                  'Default is true.',
+            required: false
 
       def execute(path: nil, safe: 'true')
         flag = safe.to_s.downcase == 'true' ? '-a' : '-A'

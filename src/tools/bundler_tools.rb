@@ -4,17 +4,6 @@ require_relative '../tool'
 
 module Tools
   module Bundler
-    def self.run_bundle_command(cmd, args = {})
-      full_cmd = build_command(cmd, args)
-      output = `#{full_cmd} 2>&1`
-
-      if $CHILD_STATUS.success?
-        output.strip.empty? ? "Bundle #{cmd} succeeded" : output.strip
-      else
-        { error: "Bundle #{cmd} failed: #{output.strip}" }
-      end
-    end
-
     def self.build_command(cmd, args)
       result = "bundle #{cmd}"
 
@@ -45,7 +34,10 @@ module Tools
       param :jobs, desc: 'Install gems using parallel workers', required: false
 
       def execute(path: nil, without: nil, jobs: nil)
-        Tools::Bundler.run_bundle_command('install', { path: path, without: without, jobs: jobs })
+        run_command(
+          build_command('install', { path: path, without: without, jobs: jobs }),
+          success_message: 'Bundle install completed successfully'
+        )
       end
     end
 
@@ -57,7 +49,10 @@ module Tools
       param :source, desc: 'The name of a source to update', required: false
 
       def execute(gems: nil, group: nil, source: nil)
-        Tools::Bundler.run_bundle_command('update', { gems: gems, group: group, source: source })
+        run_command(
+          build_command('update', { gems: gems, group: group, source: source }),
+          success_message: 'Bundle update completed successfully'
+        )
       end
     end
 
@@ -69,7 +64,10 @@ module Tools
       param :group, desc: 'The group to add the gem to (e.g., \'development\')', required: false
 
       def execute(gem_name:, version: nil, group: nil)
-        Tools::Bundler.run_bundle_command("add #{gem_name}", { version: version, group: group })
+        run_command(
+          Tools::Bundler.build_command('add', { gem_name: gem_name, version: version, group: group }),
+          success_message: "Gem '#{gem_name}' added successfully"
+        )
       end
     end
 
@@ -79,7 +77,10 @@ module Tools
       param :gem_name, desc: 'The name of the gem to remove'
 
       def execute(gem_name:)
-        Tools::Bundler.run_bundle_command("remove #{gem_name}")
+        run_command(
+          Tools::Bundler.build_command('remove', { gem_name: gem_name }),
+          success_message: "Gem '#{gem_name}' removed successfully"
+        )
       end
     end
 
@@ -89,7 +90,7 @@ module Tools
       param :name, desc: 'Filter for gems with the specified name', required: false
 
       def execute(name: nil)
-        Tools::Bundler.run_bundle_command('list', { name: name })
+        run_command(Tools::Bundler.build_command('list', { name: name }))
       end
     end
 
@@ -99,7 +100,7 @@ module Tools
       param :gem_name, desc: 'The name of the gem to get info for'
 
       def execute(gem_name:)
-        Tools::Bundler.run_bundle_command("info #{gem_name}")
+        run_command(Tools::Bundler.build_command('info', { gem_name: gem_name }))
       end
     end
 
@@ -109,7 +110,7 @@ module Tools
       param :filter, desc: 'Only list gems with names matching this filter', required: false
 
       def execute(filter: nil)
-        Tools::Bundler.run_bundle_command('outdated', { filter: filter })
+        run_command(Tools::Bundler.build_command('outdated', { filter: filter }))
       end
     end
   end
