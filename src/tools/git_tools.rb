@@ -25,7 +25,7 @@ module Tools
           'No files added. Committing staged changes.'
         end
 
-        run_command(`git commit -m "#{message}"`)
+        run_command(`git commit -m "[AGENT] #{message}"`)
       end
     end
 
