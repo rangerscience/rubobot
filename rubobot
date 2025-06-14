@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Load the gems and environment variables from .env file.
+Dir.chdir(__dir__) do
+  require 'bundler/setup'
+  require 'dotenv/load'
+end
+
+require 'ruby_llm'
+require_relative 'src/agent'
+
+RubyLLM.configure do |config|
+  config.anthropic_api_key = ENV.fetch('ANTHROPIC_API_KEY', nil)
+  config.default_model = 'claude-3-7-sonnet'
+
+  config.retry_interval = 60 # seconds
+  config.retry_backoff_factor = 2
+end
+
+# Display help information if requested
+if ARGV.empty? || ARGV.include?('--help') || ARGV.include?('-h')
+  puts "Usage: rubobot \"Your prompt here\""
+  puts ""
+  puts "Options:"
+  puts "  --help, -h    Show this help message"
+  puts ""
+  puts "Examples:"
+  puts "  rubobot \"Check if my Gemfile has the latest version of Rails\""
+  puts "  rubobot \"Add RSpec to my project\""
+  exit 1
+end
+
+# Filter out any help flags and join all remaining arguments to form the complete prompt
+args = ARGV.reject { |arg| arg == '--help' || arg == '-h' }
+prompt = args.join(' ')
+
+# Create a new agent and process the prompt
+agent = Agent.new
+response = agent.chat(prompt)
+
+# Print the response content
+puts response.content if response
