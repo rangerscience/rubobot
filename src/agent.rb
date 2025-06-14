@@ -8,6 +8,8 @@ require 'debug'
 # Require all tool files
 Dir[File.join(__dir__, 'tools', '*.rb')].sort.each { |file| require_relative file }
 
+SUMMARY_PROMPT = "The conversation history is getting quite long. Please provide a concise summary of all prior messages to minimize token usage going forward. Focus only on the most important information and context needed to continue the conversation effectively."
+
 class Agent
   def initialize(working_dir: './')
     @working_dir = working_dir
@@ -45,6 +47,7 @@ class Agent
     @chat = RubyLLM.chat
     @chat.with_tools(*tools)
     @chat.with_instructions(instructions) if instructions
+    @summarizing = false
 
     @chat.on_end_message do |response|
       now = Time.now
@@ -53,41 +56,27 @@ class Agent
       @output_tokens << [now, response.output_tokens] unless response.output_tokens.nil?
       delay(@input_tokens, 20_000)
       delay(@output_tokens, 3_000)
+
+      # This doesn't seem to work yet.
+      # if (response.input_tokens || 0) > 3_000 && !@summarizing
+      #   @summarizing = true
+      #   puts "Conversation is getting large; summarizing"
+      #   summary_response = @chat.ask(SUMMARY_PROMPT)
+      #   initialize_chat
+      #   @chat.ask(summary_response.content)
+      # end
     end
   end
 
   def delay(tokens, limit)
-    puts '...'
     loop do
       return if token_usage_last_minute(tokens) < limit
-
       print '.'
       sleep(1)
     end
   end
 
-  def estimate_token_count(text)
-    # Simple estimation: ~4 characters per token on average
-    # This is a rough approximation; more accurate counting would require a tokenizer
-    text.length / 4
-  end
-
   def chat(msg)
-    # Check if the input token count exceeds 10,000
-    estimated_tokens = estimate_token_count(msg)
-    if estimated_tokens > 10_000
-      puts "Message is very large (estimated #{estimated_tokens} tokens). Requesting a summary of prior context..."
-      
-      # Ask the agent to summarize prior messages
-      summary_prompt = "The conversation history is getting quite long. Please provide a concise summary of all prior messages to minimize token usage going forward. Focus only on the most important information and context needed to continue the conversation effectively."
-      
-      # Send the summary request to the agent
-      @chat.ask(summary_prompt)
-      
-      # After getting the summary, continue with the original message
-      puts "Continuing with your original message..."
-    end
-    
     delay(@input_tokens, 20_000 - msg.split.count)
     @chat.ask(msg)
   rescue RubyLLM::RateLimitError
