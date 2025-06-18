@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require 'fileutils'
-require 'ruby_llm'
-require 'time'
-require 'debug'
+require "fileutils"
+require "ruby_llm"
+require "time"
+require "debug"
 
 # Require all tool files
-Dir[File.join(__dir__, 'tools', '*.rb')].sort.each { |file| require_relative file }
+Dir[File.join(__dir__, "tools", "*.rb")].sort.each { |file| require_relative file }
 
 SUMMARY_PROMPT = "The conversation history is getting quite long. Please provide a concise summary of all prior messages to minimize token usage going forward. Focus only on the most important information and context needed to continue the conversation effectively."
 
 class Agent
-  def initialize(working_dir: './')
+  def initialize(working_dir: "./")
     @working_dir = working_dir
     FileUtils.mkdir_p(@working_dir)
     @input_tokens = []
@@ -31,12 +31,8 @@ class Agent
   end
 
   def instructions
-    @instructions ||= read_file(File.join(@working_dir, '.ai', 'instructions.txt')) ||
-                      read_file(File.join('.ai', 'instructions.txt'))
-  end
-
-  def prompt
-    @prompt ||= read_file(File.join(@working_dir, '.ai', 'prompt.txt'))
+    @instructions ||= read_file(File.join(@working_dir, ".ai", "instructions.txt")) ||
+                      read_file(File.join(".ai", "instructions.txt"))
   end
 
   def read_file(path)
@@ -71,7 +67,8 @@ class Agent
   def delay(tokens, limit)
     loop do
       return if token_usage_last_minute(tokens) < limit
-      print '.'
+
+      print "."
       sleep(1)
     end
   end
@@ -80,15 +77,15 @@ class Agent
     delay(@input_tokens, 20_000 - msg.split.count)
     @chat.ask(msg)
   rescue RubyLLM::RateLimitError
-    puts 'Rate limit hit. Waiting...'
+    puts "Rate limit hit. Waiting..."
     sleep(70)
     retry
   rescue RubyLLM::Error => e
-    File.write(File.join(@working_dir, '.ai', 'prompt.txt'), msg)
+    File.write(File.join(@working_dir, ".ai", "prompt.txt"), msg)
     puts "Error: #{e.message}"
     debugger
   rescue StandardError => e
-    File.write(File.join(@working_dir, '.ai', 'prompt.txt'), msg)
+    File.write(File.join(@working_dir, ".ai", "prompt.txt"), msg)
     puts "Error: #{e.message}"
   end
 
@@ -113,13 +110,13 @@ class Agent
     chat(prompt) if prompt
 
     loop do
-      print '> '
+      print "> "
       input = $stdin.gets.chomp
 
       case input
-      when 'exit' then break
-      when 'reset' then initialize_chat
-      when 'usage' then display_usage
+      when "exit" then break
+      when "reset" then initialize_chat
+      when "usage" then display_usage
       else chat(input)
       end
     end
