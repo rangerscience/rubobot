@@ -6,9 +6,12 @@ require "time"
 require "debug"
 
 # Require all tool files
-Dir[File.join(__dir__, "tools", "*.rb")].sort.each { |file| require_relative file }
+Dir[File.join(__dir__, "tools", "*.rb")].each { |file| require_relative file }
 
-SUMMARY_PROMPT = "The conversation history is getting quite long. Please provide a concise summary of all prior messages to minimize token usage going forward. Focus only on the most important information and context needed to continue the conversation effectively."
+SUMMARY_PROMPT = "The conversation history is getting quite long. \
+  Please provide a concise summary of all prior messages to minimize \
+  token usage going forward. Focus only on the most important information \
+  and context needed to continue the conversation effectively."
 
 class Agent
   def initialize(working_dir: "./")

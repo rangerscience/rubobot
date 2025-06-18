@@ -22,6 +22,9 @@ Style/FrozenStringLiteralComment:
 Style/SpecialGlobalVars:
   Enabled: true
 
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
 Layout/LineLength:
   Max: 120
 

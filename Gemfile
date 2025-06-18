@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'debug'
-gem 'dotenv'
-gem 'ruby_llm'
+# Specify your gem's dependencies in coding_agent.gemspec
+gemspec
 
-group :development, :test do
-  gem 'minitest'
-  gem 'rubocop', require: false
-end
+gem "rake", "~> 13.0"
+gem "rspec", "~> 3.0"
+gem "rubocop", "~> 1.21"
