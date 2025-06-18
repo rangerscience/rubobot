@@ -1,2 +1,0 @@
-Turn yourself into a command line tool used like `rubobot "This is a prompt"`
-The command line tool should use src/agent.rb to respond to user prompts.

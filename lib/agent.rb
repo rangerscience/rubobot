@@ -31,8 +31,8 @@ class Agent
   end
 
   def instructions
-    @instructions ||= read_file(File.join(@working_dir, ".ai", "instructions.txt")) ||
-                      read_file(File.join(".ai", "instructions.txt"))
+    @instructions ||= read_file(File.join(@working_dir, ".ai", "instructions", "base.txt")) ||
+                      read_file(File.join(".ai", "instructions", "base.txt"))
   end
 
   def read_file(path)
@@ -81,11 +81,11 @@ class Agent
     sleep(70)
     retry
   rescue RubyLLM::Error => e
-    File.write(File.join(@working_dir, ".ai", "prompt.txt"), msg)
+    File.write(File.join(@working_dir, ".ai", "scratch", "prompt.txt"), msg)
     puts "Error: #{e.message}"
     debugger
   rescue StandardError => e
-    File.write(File.join(@working_dir, ".ai", "prompt.txt"), msg)
+    File.write(File.join(@working_dir, ".ai", "scratch", "prompt.txt"), msg)
     puts "Error: #{e.message}"
   end
 
