@@ -1,9 +1,14 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require "debug"
+
+LIBRARY_PATH = File.expand_path("../lib", __dir__)
+$LOAD_PATH.unshift(LIBRARY_PATH) unless $LOAD_PATH.include?(LIBRARY_PATH)
+
 require "bundler/setup"
 require "ruby_llm"
-require_relative "lib/agent"
+require "agent"
 
 RubyLLM.configure do |config|
   config.anthropic_api_key = ENV.fetch("ANTHROPIC_API_KEY", nil)
@@ -14,7 +19,7 @@ RubyLLM.configure do |config|
 end
 
 # Display help information if requested
-if ARGV.empty? || ARGV.include?("--help") || ARGV.include?("-h")
+if ARGV.include?("--help") || ARGV.include?("-h")
   puts "Usage: rubobot \"Your prompt here\""
   puts ""
   puts "Options:"
@@ -30,12 +35,20 @@ def read_file(path)
   File.exist?(path) ? File.read(path).strip : nil
 end
 
-puts __FILE__
-puts __dir__
+working_dir = File.expand_path(`pwd`.strip)
+prompt = read_file(File.join(".ai", "scratch", "prompt.txt")) || ARGV.join(" ")
 
-debugger
-# read_file(File.join(".ai", "scratch", "prompt.txt")) || ARGV.join(" ")
-
-# Create a new agent and process the prompt
-# agent = Agent.new(working_dir: __dir__)
-# response = agent.chat(prompt)
+begin
+  puts "Working in: #{working_dir}"
+  orig_dir = Dir.pwd
+  Dir.chdir(working_dir)
+  agent = Agent.new(working_dir: __dir__)
+  if prompt.empty?
+    puts "Chat with the agent. Type 'exit' to exit"
+    agent.run
+  else
+    agent.chat(prompt)
+  end
+ensure
+  Dir.chdir(orig_dir)
+end

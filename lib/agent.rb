@@ -14,9 +14,7 @@ SUMMARY_PROMPT = "The conversation history is getting quite long. \
   and context needed to continue the conversation effectively."
 
 class Agent
-  def initialize(working_dir: "./")
-    @working_dir = working_dir
-    FileUtils.mkdir_p(@working_dir)
+  def initialize()
     @input_tokens = []
     @output_tokens = []
     initialize_chat
@@ -34,8 +32,8 @@ class Agent
   end
 
   def instructions
-    @instructions ||= read_file(File.join(@working_dir, ".ai", "instructions", "base.txt")) ||
-                      read_file(File.join(".ai", "instructions", "base.txt"))
+    @instructions ||= read_file(File.join(".ai", "instructions", "base.txt")) ||
+                      read_file(File.join(__dir__, "..", ".ai", "instructions", "base.txt"))
   end
 
   def read_file(path)
@@ -56,6 +54,15 @@ class Agent
       delay(@input_tokens, 20_000)
       delay(@output_tokens, 3_000)
 
+      sig = "[#{token_usage_last_minute(@input_tokens)}/20_000] #{response.role}"
+      msg = if response.role == :tool
+              tool_call = @chat.messages[-2].tool_calls[response.tool_call_id]
+              tool_call.name
+            else
+              response.content
+            end
+      puts "#{sig}: #{msg}"
+
       # This doesn't seem to work yet.
       # if (response.input_tokens || 0) > 3_000 && !@summarizing
       #   @summarizing = true
@@ -74,6 +81,7 @@ class Agent
       print "."
       sleep(1)
     end
+    print "\n"
   end
 
   def chat(msg)
@@ -104,17 +112,9 @@ class Agent
   end
 
   def run
-    puts "Chat with the agent. Type 'exit' to exit"
-    puts "Working in: #{@working_dir}"
-
-    orig_dir = Dir.pwd
-    Dir.chdir(@working_dir)
-
-    chat(prompt) if prompt
-
     loop do
       print "> "
-      input = $stdin.gets.chomp
+      input = gets.chomp
 
       case input
       when "exit" then break
@@ -123,7 +123,5 @@ class Agent
       else chat(input)
       end
     end
-  ensure
-    Dir.chdir(orig_dir)
   end
 end
