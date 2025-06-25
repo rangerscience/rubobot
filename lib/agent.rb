@@ -17,6 +17,7 @@ class Agent
   def initialize()
     @input_tokens = []
     @output_tokens = []
+    @instructions = read_file(base_instructions_file)
     initialize_chat
   end
 
@@ -31,9 +32,8 @@ class Agent
     end.compact
   end
 
-  def instructions
-    @instructions ||= read_file(File.join(".ai", "instructions", "base.txt")) ||
-                      read_file(File.join(__dir__, "..", ".ai", "instructions", "base.txt"))
+  def base_instructions_file
+    File.join(__dir__, "..", ".ai", *self.class.name.split("::"), "instructions.txt")
   end
 
   def read_file(path)
@@ -43,45 +43,31 @@ class Agent
   def initialize_chat
     @chat = RubyLLM.chat
     @chat.with_tools(*tools)
-    @chat.with_instructions(instructions) if instructions
-    @summarizing = false
+    @chat.with_instructions(@instructions) if @instructions
 
     @chat.on_end_message do |response|
       now = Time.now
       # TODO: Feels a little odd that tool calls have nil token counts...
       @input_tokens << [now, response.input_tokens] unless response.input_tokens.nil?
       @output_tokens << [now, response.output_tokens] unless response.output_tokens.nil?
+      log_line(response)
       delay(@input_tokens, 20_000)
       delay(@output_tokens, 3_000)
-
-      sig = "[#{token_usage_last_minute(@input_tokens)}/20_000] #{response.role}"
-      msg = if response.role == :tool
-              tool_call = @chat.messages[-2].tool_calls[response.tool_call_id]
-              tool_call.name
-            else
-              response.content
-            end
-      puts "#{sig}: #{msg}"
-
-      # This doesn't seem to work yet.
-      # if (response.input_tokens || 0) > 3_000 && !@summarizing
-      #   @summarizing = true
-      #   puts "Conversation is getting large; summarizing"
-      #   summary_response = @chat.ask(SUMMARY_PROMPT)
-      #   initialize_chat
-      #   @chat.ask(summary_response.content)
-      # end
     end
   end
 
   def delay(tokens, limit)
-    loop do
-      return if token_usage_last_minute(tokens) < limit
-
+    delayed = false
+    while token_usage_last_minute(tokens) >= limit do
+      delayed = true
       print "."
       sleep(1)
     end
-    print "\n"
+    print "\n" if delayed
+  end
+
+  def execute(prompt)
+    chat(prompt)
   end
 
   def chat(msg)
@@ -91,37 +77,13 @@ class Agent
     puts "Rate limit hit. Waiting..."
     sleep(70)
     retry
-  rescue RubyLLM::Error => e
-    File.write(File.join(@working_dir, ".ai", "scratch", "prompt.txt"), msg)
-    puts "Error: #{e.message}"
-    debugger
-  rescue StandardError => e
-    File.write(File.join(@working_dir, ".ai", "scratch", "prompt.txt"), msg)
-    puts "Error: #{e.message}"
   end
 
   def token_usage_last_minute(records)
     cutoff = Time.now - 60
     records.select { |time, _| time > cutoff }.sum { |_, count| count }
   end
-
-  def display_usage
-    input = token_usage_last_minute(@input_tokens)
-    output = token_usage_last_minute(@output_tokens)
-    puts "Tokens (last 60s): In: #{input}, Out: #{output}, Total: #{input + output}"
-  end
-
-  def run
-    loop do
-      print "> "
-      input = gets.chomp
-
-      case input
-      when "exit" then break
-      when "reset" then initialize_chat
-      when "usage" then display_usage
-      else chat(input)
-      end
-    end
-  end
 end
+
+# Require all agent files
+Dir[File.join(__dir__, "agents", "*.rb")].each { |file| require_relative file }

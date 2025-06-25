@@ -1,0 +1,7 @@
+For all tasks, also do the following:
+1. Take notes on what you are doing in .ai/logs/steps.txt
+  a. Notes should allow you to pick up where you left off
+  b. You should read your notes first
+2. Use the planner agent to come up with a plan.
+  a. Show this plan to the user and request feedback
+  b. Once the user approves the plan, execute it
