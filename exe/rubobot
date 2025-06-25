@@ -8,7 +8,7 @@ $LOAD_PATH.unshift(LIBRARY_PATH) unless $LOAD_PATH.include?(LIBRARY_PATH)
 
 require "bundler/setup"
 require "ruby_llm"
-require "agent"
+require "rubobot"
 
 RubyLLM.configure do |config|
   config.anthropic_api_key = ENV.fetch("ANTHROPIC_API_KEY", nil)
@@ -38,17 +38,14 @@ end
 working_dir = File.expand_path(`pwd`.strip)
 prompt = read_file(File.join(".ai", "scratch", "prompt.txt")) || ARGV.join(" ")
 
-begin
-  puts "Working in: #{working_dir}"
-  orig_dir = Dir.pwd
-  Dir.chdir(working_dir)
-  agent = Agent.new(working_dir: __dir__)
-  if prompt.empty?
-    puts "Chat with the agent. Type 'exit' to exit"
-    agent.run
-  else
-    agent.chat(prompt)
-  end
-ensure
-  Dir.chdir(orig_dir)
-end
+# begin
+  puts '################ Rubobot ################'
+  # puts "Working in: #{working_dir}"
+  # orig_dir = Dir.pwd
+  # Dir.chdir(working_dir)
+  agent = Rubobot::Rubobot.new
+  agent.chat(prompt) if !prompt.empty?
+#  agent.run
+# #ensure
+#   #Dir.chdir(orig_dir)
+# end
