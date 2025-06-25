@@ -73,5 +73,22 @@ module Tools
         Dir.glob(File.join(path, pattern))
       end
     end
+
+    class Append < Tool
+      description "Append content to a file"
+      param :path, desc: "File path"
+      param :content, desc: "Content to append"
+
+      def exec(path:, content:)
+        Tools::Files.safe(path) do
+          dir = File.dirname(path)
+          FileUtils.mkdir_p(dir) unless dir == "." || Dir.exist?(dir)
+          File.open(path, "a") do |file|
+            file.write(content)
+          end
+          "Content appended to #{path}"
+        end
+      end
+    end
   end
 end
