@@ -13,7 +13,7 @@ module Tools
                   "If not provided, all files will be checked.",
             required: false
 
-      def execute(path: nil)
+      def exec(path: nil)
         output = `bundle exec rubocop #{path} --format json 2>&1`.strip
 
         begin
@@ -52,7 +52,7 @@ module Tools
                   "Default is true.",
             required: false
 
-      def execute(path: nil, safe: "true")
+      def exec(path: nil, safe: "true")
         flag = safe.to_s.downcase == "true" ? "-a" : "-A"
         output = `bundle exec rubocop #{flag} #{path} 2>&1`.strip
         $CHILD_STATUS.success? ? "RuboCop autocorrection completed:\n#{output}" : { error: "Failed: #{output}" }
@@ -63,7 +63,7 @@ module Tools
       description "Get an explanation for a specific RuboCop cop or offense."
       param :cop_name, desc: "The name of the RuboCop cop to explain (e.g., 'Style/StringLiterals')."
 
-      def execute(cop_name:)
+      def exec(cop_name:)
         output = `bundle exec rubocop --help #{cop_name} 2>&1`
         return { error: "Failed: #{output}" } unless $CHILD_STATUS.success?
 

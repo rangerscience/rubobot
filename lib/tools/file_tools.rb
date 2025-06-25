@@ -21,7 +21,7 @@ module Tools
       description "List files/dirs"
       param :path, desc: "Path to list (default: current dir)"
 
-      def execute(path: "")
+      def exec(path: "")
         Dir.glob(File.join(path, "*"))
            .map { |f| File.directory?(f) ? "#{f}/" : f }
       end
@@ -31,7 +31,7 @@ module Tools
       description "Show file contents"
       param :path, desc: "File to read"
 
-      def execute(path:)
+      def exec(path:)
         Tools::Files.safe(path) { File.read(path) }
       end
     end
@@ -41,7 +41,7 @@ module Tools
       param :path, desc: "File path"
       param :content, desc: "Content to write"
 
-      def execute(path:, content:)
+      def exec(path:, content:)
         Tools::Files.safe(path) do
           dir = File.dirname(path)
           FileUtils.mkdir_p(dir) unless dir == "." || Dir.exist?(dir)
@@ -56,7 +56,7 @@ module Tools
       param :old_str, desc: "Text to replace"
       param :new_str, desc: "Replacement text"
 
-      def execute(path:, old_str:, new_str:)
+      def exec(path:, old_str:, new_str:)
         Tools::Files.safe(path) do
           content = File.exist?(path) ? File.read(path) : ""
           File.write(path, content.sub(old_str, new_str))
@@ -69,7 +69,7 @@ module Tools
       param :path, desc: "Base directory to search from"
       param :pattern, desc: 'Glob pattern to match files (e.g., "**/*.rb")'
 
-      def execute(pattern:, path: ".")
+      def exec(pattern:, path: ".")
         Dir.glob(File.join(path, pattern))
       end
     end

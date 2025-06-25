@@ -10,7 +10,7 @@ module Tools
       param :prompt, desc: "The prompt to show to the user"
       param :default, desc: "Optional default value to suggest"
 
-      def execute(prompt:, default: nil)
+      def exec(prompt:, default: nil)
         print "#{prompt} "
         print "[#{default}] " if default
         input = gets.chomp

@@ -7,7 +7,7 @@ module Tools
     description "Execute a linux shell command"
     param :command, desc: "The command to execute"
 
-    def execute(command:)
+    def exec(command:)
       puts "AI wants to execute the following shell command: '#{command}'"
       print "Do you want to execute it? (y/n) "
       response = gets.chomp

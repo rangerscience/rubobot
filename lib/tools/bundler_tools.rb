@@ -33,7 +33,7 @@ module Tools
       param :without, desc: "Exclude gems that are part of the specified named group", required: false
       param :jobs, desc: "Install gems using parallel workers", required: false
 
-      def execute(path: nil, without: nil, jobs: nil)
+      def exec(path: nil, without: nil, jobs: nil)
         run_command(
           build_command("install", { path: path, without: without, jobs: jobs }),
           success_message: "Bundle install completed successfully"
@@ -48,7 +48,7 @@ module Tools
       param :group, desc: "Only update the gems in the specified group", required: false
       param :source, desc: "The name of a source to update", required: false
 
-      def execute(gems: nil, group: nil, source: nil)
+      def exec(gems: nil, group: nil, source: nil)
         run_command(
           build_command("update", { gems: gems, group: group, source: source }),
           success_message: "Bundle update completed successfully"
@@ -63,7 +63,7 @@ module Tools
       param :version, desc: "The version of the gem to add (e.g., '~> 1.0.0')", required: false
       param :group, desc: "The group to add the gem to (e.g., 'development')", required: false
 
-      def execute(gem_name:, version: nil, group: nil)
+      def exec(gem_name:, version: nil, group: nil)
         run_command(
           Tools::Bundler.build_command("add", { gem_name: gem_name, version: version, group: group }),
           success_message: "Gem '#{gem_name}' added successfully"
@@ -76,7 +76,7 @@ module Tools
       description "Remove the specified gem from the Gemfile and run bundle install"
       param :gem_name, desc: "The name of the gem to remove"
 
-      def execute(gem_name:)
+      def exec(gem_name:)
         run_command(
           Tools::Bundler.build_command("remove", { gem_name: gem_name }),
           success_message: "Gem '#{gem_name}' removed successfully"
@@ -89,7 +89,7 @@ module Tools
       description "List all gems in the bundle"
       param :name, desc: "Filter for gems with the specified name", required: false
 
-      def execute(name: nil)
+      def exec(name: nil)
         run_command(Tools::Bundler.build_command("list", { name: name }))
       end
     end
@@ -99,7 +99,7 @@ module Tools
       description "Show information for the specified gem in the bundle"
       param :gem_name, desc: "The name of the gem to get info for"
 
-      def execute(gem_name:)
+      def exec(gem_name:)
         run_command(Tools::Bundler.build_command("info", { gem_name: gem_name }))
       end
     end
@@ -109,7 +109,7 @@ module Tools
       description "Show all outdated gems in the bundle"
       param :filter, desc: "Only list gems with names matching this filter", required: false
 
-      def execute(filter: nil)
+      def exec(filter: nil)
         run_command(Tools::Bundler.build_command("outdated", { filter: filter }))
       end
     end

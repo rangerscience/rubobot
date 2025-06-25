@@ -2,7 +2,7 @@
 
 class Tool < RubyLLM::Tool
   def execute(...)
-    execute(...)
+    exec(...)
   rescue StandardError => e
     { error: e.message }
   end
@@ -15,4 +15,19 @@ class Tool < RubyLLM::Tool
       { command: command, error: "Command failed: #{output.strip}" }
     end
   end
+
+  def self.tools(base = Tools)
+    base.constants.flat_map do |const|
+      tool = base.const_get(const)
+      if tool.is_a?(Class) && tool.ancestors.include?(RubyLLM::Tool)
+        tool
+      elsif tool.is_a?(Module)
+        tools(tool)
+      end
+    end.compact
+  end
 end
+
+# Require all tool files
+Dir[File.join(__dir__, "tools", "*.rb")].each { |file| require_relative file }
+

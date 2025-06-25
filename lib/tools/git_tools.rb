@@ -11,7 +11,7 @@ module Tools
       param :all, desc: "Add all files by staging all changes, including untracked files.", required: false
       param :update, desc: "Update the index just where it already has an entry matching <pathspec>", required: false
 
-      def execute(path: nil, all: false, update: false)
+      def exec(path: nil, all: false, update: false)
         return { error: "Not a git repository" } unless Dir.exist?(".git")
 
         cmd = "git add"
@@ -29,7 +29,7 @@ module Tools
       param :add_all, desc: "Whether to add all changes before committing. Set to true or false.", required: false
       param :files, desc: "List of specific files to add to the commit. Ignored if add_all is true.", required: false
 
-      def execute(message:, add_all: false, files: nil)
+      def exec(message:, add_all: false, files: nil)
         return { error: "Not a git repository" } unless Dir.exist?(".git")
 
         if add_all
@@ -50,7 +50,7 @@ module Tools
     class Status < Tool
       description "Show the working tree status."
 
-      def execute
+      def exec
         return { error: "Not a git repository" } unless Dir.exist?(".git")
 
         run_command("git status")
@@ -62,7 +62,7 @@ module Tools
       param :path, desc: "Optional path to specific file or directory to show diff for.", required: false
       param :staged, desc: "Whether to show staged changes (--cached). Set to true or false.", required: false
 
-      def execute(path: nil, staged: false)
+      def exec(path: nil, staged: false)
         return { error: "Not a git repository" } unless Dir.exist?(".git")
 
         cmd = "git diff"
@@ -80,7 +80,7 @@ module Tools
       param :format, desc: "Format of the log output. Options: 'oneline', 'short', 'medium', 'full', 'fuller'.",
                      required: false
 
-      def execute(number: 10, path: nil, format: nil)
+      def exec(number: 10, path: nil, format: nil)
         return { error: "Not a git repository" } unless Dir.exist?(".git")
 
         cmd = "git log -n #{number}"
