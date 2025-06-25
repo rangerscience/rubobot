@@ -1,0 +1,9 @@
+I need to gather information to help complete a plan step.
+
+Analyze this plan step and determine:
+1. What specific information is needed to complete this step?
+2. What files, code, or documentation should be examined?
+3. What context from the project would be helpful?
+4. Are there any dependencies or prerequisites that should be checked?
+
+Your last response must be the full set of gathered information needed to complete the task.
