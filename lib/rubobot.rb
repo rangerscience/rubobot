@@ -4,8 +4,10 @@ require_relative './tool'
 module Rubobot
   class Rubobot < Agent
     def tools
-      Tool.tools + [
+      [
+        Tools::UserInput::Request,
         Agents::Planner,
+        Agents::InfoAssembler,
       ]
     end
 

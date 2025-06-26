@@ -24,10 +24,6 @@ class Agent < RubyLLM::Tool
   def tools
     []
   end
-  
-  def base_dir
-    File.join(__dir__, "..", ".ai")
-  end
 
   def base_instructions_file
     File.join(__dir__, "..", ".ai", *self.class.name.split("::"), "instructions.txt")
@@ -77,10 +73,6 @@ class Agent < RubyLLM::Tool
       sleep(1)
     end
     print "\n" if delayed
-  end
-
-  def execute(prompt)
-    chat(prompt)
   end
 
   def chat(msg)
