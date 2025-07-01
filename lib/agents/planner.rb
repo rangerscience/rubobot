@@ -17,13 +17,15 @@ module Agents
     end
 
     def plan_file(name = "plan.txt")
-      File.join(__dir__, 'scratch', name)
+      File.join(scratch_dir, name)
     end
 
     def execute(prompt:, output_file:)
       response = @chat.ask(prompt)
-      File.write(plan_file(plan_file_name), response.content)
+      File.write(plan_file(output_file), response.content)
       "Plan written to file"
+    rescue StandardError => e
+      debugger
     end
   end
 end

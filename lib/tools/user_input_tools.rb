@@ -8,13 +8,11 @@ module Tools
     class Request < Tool
       description "Request input from the user"
       param :prompt, desc: "The prompt to show to the user"
-      param :default, desc: "Optional default value to suggest"
 
-      def exec(prompt:, default: nil)
-        print "#{prompt} "
-        print "[#{default}] " if default
-        input = gets.chomp
-        input.empty? && default ? default : input
+      def exec(prompt:)
+        puts prompt
+        print "> "
+        $stdin.gets.chomp
       end
     end
   end

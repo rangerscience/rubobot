@@ -25,6 +25,12 @@ class Agent < RubyLLM::Tool
     []
   end
 
+  def scratch_dir
+    File.join(__dir__, "..", ".ai", "scratch", self.class.name.split("::").last.downcase).tap do |dir|
+      FileUtils.mkdir_p(dir)
+    end
+  end
+
   def base_instructions_file
     File.join(__dir__, "..", ".ai", *self.class.name.split("::"), "instructions.txt")
   end

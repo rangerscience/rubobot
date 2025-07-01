@@ -44,13 +44,13 @@ begin
   agent.chat(prompt) if !prompt.empty?
   agent.run
 rescue RubyLLM::Error => e
-  File.write(File.join(".ai", "scratch", "prompt.txt"), msg)
+  File.write(File.join(".ai", "scratch", "prompt.txt"), prompt)
   puts "Error: #{e.message}"
   debugger
 rescue StandardError => e
-  File.write(File.join(".ai", "scratch", "prompt.txt"), msg)
+  File.write(File.join(".ai", "scratch", "prompt.txt"), prompt)
   puts "Error: #{e.message}"
   debugger
-rescue NotImplementedError => e
+rescue Error => e
   debugger
 end
