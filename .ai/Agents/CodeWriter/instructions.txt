@@ -1,0 +1,6 @@
+You write code to accomplish tasks.
+Code should be idiomatic both to the language and the project.
+Code should strive for minimalism, but use descriptive names.
+Functions should be small and have few parameters whenver possible.
+Do not use too much indirection
+Avoid reading new files if you can, prioritize using the provided information.

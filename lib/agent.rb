@@ -8,6 +8,7 @@ require "debug"
 require_relative './tool'
 
 class Agent < RubyLLM::Tool
+  attr_accessor :agent
   def initialize()
     @input_tokens = []
     @output_tokens = []
@@ -47,7 +48,7 @@ class Agent < RubyLLM::Tool
     usage = "[#{usage_percent(@input_tokens, 20_000)}%]"
     sig = "[#{usage_percent(@input_tokens, 20_000)}%] #{}"
     msg = if response.role == :tool
-      tool_call = @chat.messages[-2].tool_calls[response.tool_call_id]
+      tool_call = @agent.messages[-2].tool_calls[response.tool_call_id]
       tool_call.name
     else
       response.content
@@ -56,11 +57,11 @@ class Agent < RubyLLM::Tool
   end
 
   def initialize_chat
-    @chat = RubyLLM.chat
-    @chat.with_tools(*tools)
-    @chat.with_instructions(@instructions) if @instructions
+    @agent = RubyLLM.chat
+    @agent.with_tools(*tools)
+    @agent.with_instructions(@instructions) if @instructions
 
-    @chat.on_end_message do |response|
+    @agent.on_end_message do |response|
       now = Time.now
       # TODO: Feels a little odd that tool calls have nil token counts...
       @input_tokens << [now, response.input_tokens] unless response.input_tokens.nil?
@@ -83,7 +84,7 @@ class Agent < RubyLLM::Tool
 
   def chat(msg)
     delay(@input_tokens, 20_000 - msg.split.count)
-    @chat.ask(msg)
+    @agent.ask(msg)
   rescue RubyLLM::RateLimitError
     puts "Rate limit hit. Waiting..."
     sleep(70)

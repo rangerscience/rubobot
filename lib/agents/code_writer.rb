@@ -5,6 +5,7 @@ module Agents
   class CodeWriter < Agent
     description "An agent that writes code to accomplish a task"
     param :prompt, desc: "The task to write code for"
+    param :info_file, desc: "A file containing the information to complete the task (required)"
 
     def tools
       [
@@ -17,8 +18,14 @@ module Agents
       ]
     end
 
-    def execute(prompt:, output_file:)
-      response = @chat.ask(prompt)
+    def execute(prompt:, info_file:)
+      response = @agent.ask("""
+      Your task is:
+        #{prompt}
+
+      Here is the information you have to start with:
+      #{read_file(info_file)}
+      """)
     rescue StandardError => e
       debugger
     end

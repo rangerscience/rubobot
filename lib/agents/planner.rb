@@ -21,7 +21,7 @@ module Agents
     end
 
     def execute(prompt:, output_file:)
-      response = @chat.ask(prompt)
+      response = @agent.ask(prompt)
       File.write(plan_file(output_file), response.content)
       "Plan written to file"
     rescue StandardError => e
